@@ -69,7 +69,7 @@
 		3D3B108815458A9A0066A74B /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		3D3B109015465CEF0066A74B /* MwfTableDataSpecs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableDataSpecs.m; sourceTree = "<group>"; };
 		3D3B10DF154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableDataBulkUpdatesSpecs.m; sourceTree = "<group>"; };
-		3DAA8258154DA04700D99ED4 /* MwfTableItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MwfTableItem.h; sourceTree = "<group>"; };
+		3DAA8258154DA04700D99ED4 /* MwfTableItem.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = MwfTableItem.h; sourceTree = "<group>"; };
 		3DAA8259154DA04700D99ED4 /* MwfTableItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableItem.m; sourceTree = "<group>"; };
 		9A3D6CFD5A1849A18AFD0235 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
