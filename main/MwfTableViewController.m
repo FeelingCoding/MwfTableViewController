@@ -7,6 +7,7 @@
 //
 
 #import "MwfTableViewController.h"
+#import <objc/runtime.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -765,6 +766,13 @@
 - (void)initialize;
 @end
 
+#define $impTarget       _implementationTarget
+#define $impTargetClass  _implementationTargetClass
+#define $createImpCache  _createImplementationCache
+#define $createSelCache  _createSelectorCache
+#define $configImpCache  _configImplementationCache
+#define $configSelCache  _configSelectorCache
+
 @implementation MwfTableViewController
 @synthesize tableHeaderTopView = _tableHeaderTopView;
 @synthesize loading            = _loading;
@@ -775,6 +783,14 @@
 - (void)initialize;
 {
   _tableData = [self createAndInitTableData];
+  
+  // IMP
+  $impTarget = self;
+  $impTargetClass = [$impTarget class];
+  $createImpCache = [[NSMutableDictionary alloc] initWithCapacity:0];
+  $configImpCache = [[NSMutableDictionary alloc] initWithCapacity:0]; 
+  $createSelCache = [[NSMutableDictionary alloc] initWithCapacity:0];
+  $configSelCache = [[NSMutableDictionary alloc] initWithCapacity:0];
 }
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil;
 {
@@ -1012,5 +1028,181 @@
 {
   return [_tableData numberOfRowsInSection:section];
 }
+
 #pragma mark - UITableViewDelegate
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
+{
+  id rowItem = [self.tableData objectForRowAtIndexPath:indexPath];
+
+  UITableViewCell * cell = [self tableView:tableView cellForObject:rowItem];
+  
+  // to prevent app crashing when returning nil
+  if (!cell) {
+    cell = [self.tableView dequeueReusableCellWithIdentifier:@"NilCell"];
+    if (!cell) cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NilCell"];
+  }
+  
+  return cell;
+}
+
+#pragma mark - TableViewCell
+- (UITableViewCell *) tableView:(UITableView *)tableView 
+                  cellForObject:(id)rowItem; 
+{
+  UITableViewCell * cell = nil;
+  Class cellClass = nil;
+  if (rowItem) {
+    
+    Class rowItemClass = object_getClass(rowItem);
+    
+    UITableView * tableView = self.tableView;
+    
+    SEL cellClassSEL = @selector(cellClass);
+    IMP cellClassIMP = NULL;
+    SEL reuseIdentifierSEL = @selector(reuseIdentifier);
+    IMP reuseIdentifierIMP = NULL;
+    
+    if (class_respondsToSelector(rowItemClass, reuseIdentifierSEL)) {
+      reuseIdentifierIMP = class_getMethodImplementation(rowItemClass, reuseIdentifierSEL);
+    }
+    
+    if (reuseIdentifierIMP) { // the class implement reuseIdentifier method
+      
+      NSString * reuseIdentifier = (*reuseIdentifierIMP)(rowItem, reuseIdentifierSEL);
+      
+      if (reuseIdentifier) {
+        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+        if (!cell) {
+          
+          if (class_respondsToSelector(rowItemClass, cellClassSEL)) {
+            cellClassIMP = class_getMethodImplementation(rowItemClass, cellClassSEL);
+          }
+          if (cellClassIMP) {
+            cellClass = (*cellClassIMP)(rowItem, @selector(cellClass));
+            if (cellClass) {
+              cell = [[cellClass alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+              
+              SEL setItemSEL = @selector(setItem:);
+              if (class_respondsToSelector(cellClass, setItemSEL)) {
+                IMP setItemIMP = class_getMethodImplementation(cellClass, setItemSEL);
+                (*setItemIMP)(cell, setItemSEL, rowItem);
+              }
+            }
+          }
+        } else cellClass = [cell class];
+      }
+    }
+    
+    // determine target
+    id target = rowItem;
+    Class targetClass = rowItemClass;
+    BOOL usingMwfTableItem = NO;
+    id userInfo = nil;
+    
+    
+    if (cell) {
+      usingMwfTableItem = YES;
+      SEL userInfoSEL = @selector(userInfo);
+      IMP userInfoIMP = NULL;
+      if (class_respondsToSelector(rowItemClass, userInfoSEL)) 
+        userInfoIMP = class_getMethodImplementation(rowItemClass, userInfoSEL);
+      
+      if (userInfoIMP) {
+        id tmpUserInfo = (*userInfoIMP)(rowItem, userInfoSEL);
+        if (tmpUserInfo) {
+          
+          userInfo = tmpUserInfo;
+
+          target = userInfo;
+          targetClass = cellClass;
+        }
+      }
+    }
+
+    if (!cell) {
+      
+      // find IMP to call
+      // e.g. item class = TestItem
+      //      selector   = tableView:createCellForTestItem:"
+      IMP createIMP = NULL; 
+      SEL createSEL = NULL;
+      id cached = (NSData *)[$createImpCache objectForKey:targetClass];
+      if (cached != [NSNull null]) {
+        
+        if (cached) createIMP = *((IMP *)[cached bytes]);
+        
+        if (!createIMP) {
+          const char * selectorName = [[@"tableView:createCellFor" stringByAppendingFormat:@"%@:", NSStringFromClass(targetClass)] UTF8String];
+          createSEL = sel_getUid(selectorName);
+          if (class_respondsToSelector($impTargetClass, createSEL)) {
+            createIMP = class_getMethodImplementation($impTargetClass, createSEL);
+            if (createIMP) {
+              [$createImpCache setObject:[NSData dataWithBytes:&createIMP length:sizeof(IMP)] 
+                                  forKey:targetClass];
+            }
+          } else {
+            [$createImpCache setObject:[NSNull null] forKey:targetClass];
+          }
+          [$createSelCache setObject:[NSData dataWithBytes:createSEL length:sizeof(SEL)] 
+                              forKey:targetClass];
+        } else {
+          createSEL = *((SEL *)[(NSData *)[$createSelCache objectForKey:targetClass] bytes]);
+        }
+        
+        // call the creation method
+        if (createIMP) {
+          cell = (UITableViewCell *) (*createIMP)($impTarget, createSEL, self.tableView, target);
+        }
+      }
+    }    
+    
+    if (cell && (userInfo || !usingMwfTableItem)) {
+      
+      // find IMP to call
+      // e.g. item class = TestItem
+      //      selector   = configCell:forTestItem:
+      IMP configIMP = NULL;
+      SEL configSEL = NULL;
+      
+      id cached = (NSData *)[$configImpCache objectForKey:targetClass];
+      if (cached != [NSNull null]) {
+        
+        if (cached) configIMP = *((IMP *)[cached bytes]);
+        
+        if (!configIMP) {
+          
+          const char * selectorName = nil; 
+          
+          if (!usingMwfTableItem) {
+            selectorName = [[@"tableView:configCell:for" stringByAppendingFormat:@"%@:",NSStringFromClass(targetClass)] UTF8String];
+          } else {
+            selectorName = [[@"tableView:config" stringByAppendingFormat:@"%@:forUserInfo:",NSStringFromClass(targetClass)] UTF8String];
+          }
+          configSEL = sel_getUid(selectorName);
+          
+          if (class_respondsToSelector($impTargetClass, configSEL))
+            configIMP = class_getMethodImplementation($impTargetClass, configSEL);
+          
+          if (configIMP) {
+            [$configImpCache setObject:[NSData dataWithBytes:&configIMP length:sizeof(IMP)] 
+                                forKey:targetClass];
+          } else {
+            [$configImpCache setObject:[NSNull null] forKey:targetClass];
+          }
+          [$configSelCache setObject:[NSData dataWithBytes:&configSEL length:sizeof(SEL)] 
+                              forKey:targetClass];
+        } else {
+          configSEL = *((SEL *)[(NSData *)[$configSelCache objectForKey:targetClass] bytes]);
+        }
+        
+        // call the configure method
+        if (configIMP) {
+          (*configIMP)($impTarget, configSEL, self.tableView, cell, target);
+        }
+      }
+    }      
+    
+  }
+  return cell;
+}
 @end

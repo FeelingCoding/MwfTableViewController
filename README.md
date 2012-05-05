@@ -139,6 +139,147 @@ Setting table data via `tableData` property of `MwfTableViewController` will tri
    }
    ```
 
+### Creating and configuring table view cell
+
+This feature aims to simplify the implementation of `tableView:cellForRowAtIndexPath:` method.
+If you have implemented table view with mix of multiple table view cell types, you will probably have a fat implementation of the `tableView:cellForRowAtIndexPath:` method.
+
+   ```objective-c
+   - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)ip;
+   {
+      UITableViewCell * cell = nil;
+      
+      id dataObject = ...; // get data object from backing store
+      
+      NSString * reuseIdentifier = @"DefaultCell"; // default
+      Class      cellClass       = [UITableViewCell class]; // default
+
+      if ([dataObject isKindOf:[DataType1 class]]) {
+        reuseIdentifier = @"DataType1Cell";
+        cellClass = [DataType1Cell class];
+      }
+      else if ([dataObject isKindOf:[DataType2 class]]) {
+        reuseIdentifier = @"DataType2Cell";
+        cellClass = [DataType2Cell class];
+      }
+      ... // and so on
+      
+      cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+      if (!cell) {
+        cell = [[cellClass alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+      }
+      
+      // configure cell
+      if ([dataObject isKindOf:[DataType1 class]]) {
+        DataType1Cell * theCell = (DataType1Cell *)cell;
+        // configure using dataObject
+      }
+      else if ([dataObject isKindOf:[DataType2 class]]) {
+        DataType2Cell * theCell = (DataType2Cell *)cell;
+        // configure using dataObject
+      }
+      
+      return cell;
+   }
+   ```
+
+The above example shows how bad it can become when the types of cell to display grow. It can become big nightmare to maintain.
+
+Hence, `MwfTableViewController` implemented a method `tableView:cellForObject:` trying to improve the big-fat-messy `tableView:cellForRowAtIndexPath:` method you may have.
+By default, `MwfTableViewController` implements `tableView:cellForRowAtIndexPath:` by calling `MwfTableData` and the method.
+
+   ```objective-c
+   - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
+   {
+     id rowItem = [self.tableData objectForRowAtIndexPath:indexPath];
+
+     UITableViewCell * cell = [self tableView:tableView cellForObject:rowItem];
+  
+     // to prevent app crashing when returning nil
+     if (!cell) {
+       cell = [self.tableView dequeueReusableCellWithIdentifier:@"NilCell"];
+       if (!cell) cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NilCell"];
+     }
+     
+     return cell;
+   }
+   ```
+   
+If you don't like the default implementation (because you are not using `MwfTableData`), you can override the method in your `MwfTableViewController` subclass to suit your need, by still utilizing `tableView:cellForObject:` method.
+
+So, how does `tableView:cellForObject:` work? In short, the design embraces coding-by-convention. It calls creation and configuration methods based on the name of the row data type.
+Example: assuming you have your row data type `Tweet` and `Comment`, it will attempt to call the following methods for you:
+* `- (UITableViewCell *)tableView:(UITableView *)tableView createCellForTweet:(Tweet *)tweet` // assume it returns TweetCell instance
+* `- (UITableViewCell *)tableView:(UITableView *)tableView createCellForComment:(Comment *)tweet` // assume it returns CommentCell instance
+* `- (UITableViewCell *)tableView:(UITableView *)tableView configCell:(TweetCell *)cell forTweet:(Tweet *)tweet`
+* `- (UITableViewCell *)tableView:(UITableView *)tableView configCell:(CommentCell *)cell forTweet:(Comment *)comment`
+
+If those methods are not implemented, they will be skipped.
+
+Note: if you want to further simplify your code by not writing those methods at all... Read on!
+
+### Table Item
+
+`MwfTableItem` is a super simple class to represent a model for your row cell. It has 3 properties, i.e. `cellClass`, `reuseIdentifier` and `userInfo`.
+* `cellClass`, by convention it will return the item class name with suffix `Cell`. e.g. `MwfTableItem` and `MwfTableItemCell`, `Tweet` and `TweetCell`.
+* `reuseIdentifier`, by convention it will return the `cellClass` name.
+* `userInfo`, default to `nil`. You can literally set anything to it (which you can use to further configure the cell).
+
+Benefits of using this:
+* Reusable, you can build a catalog of table items and cells that you can reuse whenever you need it.
+* When using with `MwfTableViewController`'s `tableView:cellForObject:` (explained in previous section), you eliminate the need to implement the creation and configuration methods. 
+* When using with `MwfTableViewController`'s `tableView:cellForObject:` and `userInfo` is set, you can implement `tableView:configure<CellClassName>:forUserInfo:` method to configure the cell using data in `userInfo`.
+
+Example:
+
+   ```objective-c
+   // from demo project
+   @interface MwfDemoLoadingItem : MwfTableItem
+   @property (nonatomic,retain) NSString * loadingText;
+   @end
+
+   @interface MwfDemoLoadingItemCell : MwfTableItemCell
+   @property (nonatomic,retain) UIActivityIndicatorView * activityIndicatorView;
+   @end   
+   
+   // the implementation
+   @implementation MwfDemoLoadingItem
+   @synthesize loadingText = _loadingText;
+   @end
+   
+   @implementation MwfDemoLoadingItemCell
+   @synthesize activityIndicatorView = _activityIndicatorView;
+   - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier;
+   {
+     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
+     if (self) {
+       _activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+       self.accessoryView = _activityIndicatorView;
+     }
+     return self;
+   }
+   - (void)setItem:(MwfDemoLoadingItem *)item;
+   {
+     [super setItem:item];
+     if (item.loadingText) self.textLabel.text = item.loadingText;
+     else self.textLabel.text = @"Loading...";
+     [_activityIndicatorView startAnimating];
+   }
+   @end
+   ```
+   
+Example when using with `tableView:cellForObject:` and `userInfo` is set.
+
+   ```objective-c
+   // from demo project
+   // The following method will be automatically invoked if userInfo is set.
+   - (void)tableView:(UITableView *)tableView configMwfDemoLoadingItemCell:(MwfDemoLoadingItemCell *)cell forUserInfo:(NSString *)userInfo; // I know the userInfo is always NSString
+   {
+     cell.detailTextLabel.text = userInfo;
+   } 
+   
+   ```   
+      
 ## Licensing
 
 MwfTableViewController is licensed under MIT License

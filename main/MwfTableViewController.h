@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MwfTableItem.h"
 
 #pragma mark - MwfTableData
 #define mwf_ip NSIndexPath*
@@ -67,6 +68,14 @@ typedef enum {
 
 @interface MwfTableViewController : UITableViewController {
   UIView * _emptyTableFooterBottomView;
+
+  id                    _implementationTarget;
+  Class                 _implementationTargetClass;
+  NSMutableDictionary * _createImplementationCache;
+  NSMutableDictionary * _createSelectorCache;
+  NSMutableDictionary * _configImplementationCache;
+  NSMutableDictionary * _configSelectorCache;
+  
 }
 @property (nonatomic) MwfTableViewLoadingStyle       loadingStyle;
 @property (nonatomic) BOOL                           loading;
@@ -87,6 +96,11 @@ typedef enum {
 @interface MwfTableViewController (TableData)
 - (MwfTableData *) createAndInitTableData;
 - (void)performUpdates:(void(^)(MwfTableData *))updates;
+@end
+
+@interface MwfTableViewController (TableViewCell)
+- (UITableViewCell *) tableView:(UITableView *)tableView 
+                  cellForObject:(id)rowItem; 
 @end
 
 @interface MwfDefaultTableLoadingView : UIView

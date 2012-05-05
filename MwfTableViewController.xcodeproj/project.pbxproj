@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D335DE61554190500E98955 /* MwfTableItemSpecs.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D335DE3155418F000E98955 /* MwfTableItemSpecs.m */; };
+		3D335DEF1554FE2900E98955 /* SpecHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D335DEE1554FE2900E98955 /* SpecHelper.m */; };
 		3D3B102815450C0E0066A74B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D3B102715450C0E0066A74B /* UIKit.framework */; };
 		3D3B102A15450C0E0066A74B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D3B102915450C0E0066A74B /* Foundation.framework */; };
 		3D3B102C15450C0E0066A74B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D3B102B15450C0E0066A74B /* CoreGraphics.framework */; };
@@ -24,6 +26,7 @@
 		3D3B108915458A9A0066A74B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 3D3B108815458A9A0066A74B /* README.md */; };
 		3D3B109115465CEF0066A74B /* MwfTableDataSpecs.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B109015465CEF0066A74B /* MwfTableDataSpecs.m */; };
 		3D3B10E0154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B10DF154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m */; };
+		3DAA825A154DA04700D99ED4 /* MwfTableItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA8259154DA04700D99ED4 /* MwfTableItem.m */; };
 		42C9AF5ACD9B4040A449C7A0 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3D6CFD5A1849A18AFD0235 /* libPods.a */; };
 		E4201A0E338A470DBCECC91F /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3D6CFD5A1849A18AFD0235 /* libPods.a */; };
 /* End PBXBuildFile section */
@@ -40,6 +43,8 @@
 
 /* Begin PBXFileReference section */
 		255696F397A848C58876C238 /* Pods.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = SOURCE_ROOT; };
+		3D335DE3155418F000E98955 /* MwfTableItemSpecs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableItemSpecs.m; sourceTree = "<group>"; };
+		3D335DEE1554FE2900E98955 /* SpecHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SpecHelper.m; sourceTree = "<group>"; };
 		3D3B102315450C0E0066A74B /* MwfTableViewController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MwfTableViewController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D3B102715450C0E0066A74B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		3D3B102915450C0E0066A74B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -64,6 +69,8 @@
 		3D3B108815458A9A0066A74B /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		3D3B109015465CEF0066A74B /* MwfTableDataSpecs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableDataSpecs.m; sourceTree = "<group>"; };
 		3D3B10DF154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableDataBulkUpdatesSpecs.m; sourceTree = "<group>"; };
+		3DAA8258154DA04700D99ED4 /* MwfTableItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MwfTableItem.h; sourceTree = "<group>"; };
+		3DAA8259154DA04700D99ED4 /* MwfTableItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableItem.m; sourceTree = "<group>"; };
 		9A3D6CFD5A1849A18AFD0235 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -156,9 +163,11 @@
 			children = (
 				3D3B104615450C0E0066A74B /* Supporting Files */,
 				3D3B107B154581D50066A74B /* SpecHelper.h */,
+				3D335DEE1554FE2900E98955 /* SpecHelper.m */,
 				3D3B107C154582040066A74B /* MwfTableViewControllerSpecs.m */,
 				3D3B109015465CEF0066A74B /* MwfTableDataSpecs.m */,
 				3D3B10DF154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m */,
+				3D335DE3155418F000E98955 /* MwfTableItemSpecs.m */,
 			);
 			path = test;
 			sourceTree = "<group>";
@@ -175,10 +184,20 @@
 		3D3B105815450D7D0066A74B /* main */ = {
 			isa = PBXGroup;
 			children = (
+				3DAA8256154DA01900D99ED4 /* cells */,
 				3D3B1063154510650066A74B /* MwfTableViewController.h */,
 				3D3B1064154510650066A74B /* MwfTableViewController.m */,
 			);
 			path = main;
+			sourceTree = "<group>";
+		};
+		3DAA8256154DA01900D99ED4 /* cells */ = {
+			isa = PBXGroup;
+			children = (
+				3DAA8258154DA04700D99ED4 /* MwfTableItem.h */,
+				3DAA8259154DA04700D99ED4 /* MwfTableItem.m */,
+			);
+			path = cells;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -310,6 +329,7 @@
 				3D3B103815450C0E0066A74B /* MwfAppDelegate.m in Sources */,
 				3D3B1065154510650066A74B /* MwfTableViewController.m in Sources */,
 				3D3B107315452AB60066A74B /* MwfDemoTableViewController.m in Sources */,
+				3DAA825A154DA04700D99ED4 /* MwfTableItem.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,6 +340,8 @@
 				3D3B107D154582040066A74B /* MwfTableViewControllerSpecs.m in Sources */,
 				3D3B109115465CEF0066A74B /* MwfTableDataSpecs.m in Sources */,
 				3D3B10E0154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m in Sources */,
+				3D335DE61554190500E98955 /* MwfTableItemSpecs.m in Sources */,
+				3D335DEF1554FE2900E98955 /* SpecHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

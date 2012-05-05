@@ -64,17 +64,6 @@
   __attribute__((__unused__)) UISearchDisplayController * sdc = [[UISearchDisplayController alloc] initWithSearchBar:((UISearchBar*)self.tableView.tableHeaderView) contentsController:self];
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-  static NSString *CellIdentifier = @"Cell";
-  UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-  if (!cell) {
-    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-  }
-  cell.textLabel.text = ((DemoData *)[self.tableData objectForRowAtIndexPath:indexPath]).value;
-  
-  return cell;
-}
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;
 {
   return 60;
@@ -96,7 +85,13 @@
   DemoData * row = [tableData objectForRowAtIndexPath:indexPath];
   if ([@"Load More" isEqual:row.value]) {
     [self performUpdates:^(MwfTableData * data) {
-      [data updateRow:$data(@"Loading...") atIndexPath:indexPath];
+      MwfDemoLoadingItem * loadingItem = [[MwfDemoLoadingItem alloc] init];
+      if (!_withSection) {
+        loadingItem.userInfo = @"Adding 5 new rows...";
+      } else {
+        loadingItem.userInfo = @"Adding new section...";
+      }
+      [data updateRow:loadingItem atIndexPath:indexPath];
     }];
     [self loadMoreInTheBackground];
   }
@@ -165,5 +160,49 @@
 {
   [self setLoading:YES animated:YES];
   [self toggleInBackground];
+}
+
+#pragma mark - Cells
+- (UITableViewCell *)tableView:(UITableView *)tv createCellForDemoData:(DemoData *)demoData;
+{
+  UITableViewCell * cell = [tv dequeueReusableCellWithIdentifier:@"DemoDataCell"];
+  if (cell == nil) {
+    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault 
+                                  reuseIdentifier:@"DemoDataCell"];
+  }
+  return cell;
+}
+- (void)tableView:(UITableView*)tv configCell:(UITableViewCell *)cell forDemoData:(DemoData *)demoData;
+{
+  cell.textLabel.text = demoData.value;
+}
+
+- (void)tableView:(UITableView *)tableView configMwfDemoLoadingItemCell:(MwfDemoLoadingItemCell *)cell forUserInfo:(NSString *)userInfo;
+{
+  cell.detailTextLabel.text = userInfo;
+}
+@end
+
+@implementation MwfDemoLoadingItem
+@synthesize loadingText = _loadingText;
+@end
+
+@implementation MwfDemoLoadingItemCell
+@synthesize activityIndicatorView = _activityIndicatorView;
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier;
+{
+  self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
+  if (self) {
+    _activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    self.accessoryView = _activityIndicatorView;
+  }
+  return self;
+}
+- (void)setItem:(MwfDemoLoadingItem *)item;
+{
+  [super setItem:item];
+  if (item.loadingText) self.textLabel.text = item.loadingText;
+  else self.textLabel.text = @"Loading...";
+  [_activityIndicatorView startAnimating];
 }
 @end

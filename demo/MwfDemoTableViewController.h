@@ -13,3 +13,11 @@
   BOOL _withSection;
 }
 @end
+
+@interface MwfDemoLoadingItem : MwfTableItem
+@property (nonatomic,retain) NSString * loadingText;
+@end
+
+@interface MwfDemoLoadingItemCell : MwfTableItemCell
+@property (nonatomic,retain) UIActivityIndicatorView * activityIndicatorView;
+@end
