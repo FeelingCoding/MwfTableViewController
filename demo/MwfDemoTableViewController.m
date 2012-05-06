@@ -8,15 +8,30 @@
 
 #import "MwfDemoTableViewController.h"
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 @interface MwfDemoTableViewController ()
 - (void)loadMoreInTheBackground;
 @end
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 @interface DemoData : NSObject
 @property (nonatomic,retain) NSString * value;
 - (id)initWithValue:(NSString *)value;
 @end
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 @implementation DemoData
 @synthesize value = _value;
 - (id)initWithValue:(NSString *)value;
@@ -29,6 +44,11 @@
 }
 @end
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 #define $data(_val_) [[DemoData alloc] initWithValue:(_val_)]
 
 @implementation MwfDemoTableViewController
@@ -38,7 +58,8 @@
   self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
   if (self) {
     self.title = @"No Section";
-    // self.loadingStyle = MwfTableViewLoadingStyleFooter;
+    self.wantSearch = YES;
+    self.searchDelayInSeconds = 0.1;
   }
   return self;
 }
@@ -46,27 +67,15 @@
 - (void)loadView {
   [super loadView];
   
-  UISearchBar * searchBar = [[UISearchBar alloc] initWithFrame:CGRectZero];
-  [searchBar sizeToFit];
-  self.tableView.tableHeaderView = searchBar;
-  self.tableView.contentOffset = CGPointMake(0,searchBar.bounds.size.height);
-  
   UIBarButtonItem * toggleButton = [[UIBarButtonItem alloc] initWithTitle:@"Toggle" 
                                                                     style:UIBarButtonItemStyleBordered 
                                                                    target:self 
                                                                    action:@selector(toggle:)];
   self.navigationItem.rightBarButtonItem = toggleButton;
 }
-
-- (void)viewDidLoad
-{
-  [super viewDidLoad];  
-  __attribute__((__unused__)) UISearchDisplayController * sdc = [[UISearchDisplayController alloc] initWithSearchBar:((UISearchBar*)self.tableView.tableHeaderView) contentsController:self];
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;
-{
-  return 60;
+- (void)viewDidLoad {
+  [super viewDidLoad];
+  self.tableView.rowHeight = 60;
 }
 
 - (MwfTableData *)createAndInitTableData;
@@ -81,7 +90,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath;
 {
-  MwfTableData * tableData = self.tableData;
+  MwfTableData * tableData = [self tableDataForTableView:tableView];
   DemoData * row = [tableData objectForRowAtIndexPath:indexPath];
   if ([@"Load More" isEqual:row.value]) {
     [self performUpdates:^(MwfTableData * data) {
@@ -98,7 +107,7 @@
 }
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section;
 {
-  return ((DemoData *)[self.tableData objectForSectionAtIndex:section]).value;
+  return ((DemoData *)[[self tableDataForTableView:tableView] objectForSectionAtIndex:section]).value;
 }
 - (void)loadMoreInTheBackground;
 {
@@ -140,12 +149,15 @@
     [self setLoading:NO];
     
     MwfTableData * newTableData = nil;
+    MwfTableData * newSearchResultsTableData = nil;
     
     if (!_withSection) {
       newTableData = [MwfTableData createTableData];
+      newSearchResultsTableData = [MwfTableData createTableData];
     } else {
       newTableData = [MwfTableData createTableDataWithSections];
       [newTableData insertSection:$data(@"Section 1") atIndex:0];
+      newSearchResultsTableData = [MwfTableData createTableDataWithSections];
     }
     [newTableData addRow:$data(@"Row 1")];
     [newTableData addRow:$data(@"Row 2")];
@@ -153,6 +165,7 @@
     [newTableData addRow:$data(@"Load More")];
     
     weakSelf.tableData = newTableData;
+    weakSelf.searchResultsTableData = newSearchResultsTableData;
   });
 }
 
@@ -181,12 +194,71 @@
 {
   cell.detailTextLabel.text = userInfo;
 }
+
+#pragma mark - Search
+- (MwfTableData *)createSearchResultsTableDataForSearchText:(NSString *)searchText scope:(NSString *)scope;
+{
+  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(searchInBackground) object:nil];
+  [self performUpdatesForSearchResults:^(MwfTableData * tableData) {
+    id firstItem = nil;
+    NSIndexPath * firstRowIp = [NSIndexPath indexPathForRow:0 inSection:0];
+    @try {
+      firstItem = [tableData objectForRowAtIndexPath:firstRowIp];
+    }
+    @catch (NSException *exception) {}
+    if (!firstItem || ![firstItem isKindOfClass:[MwfDemoLoadingItem class]]) {
+      if (_withSection) {
+        [tableData insertSection:$data(@"") atIndex:0];
+      }
+      MwfDemoLoadingItem * loadingItem = [[MwfDemoLoadingItem alloc] init];
+      [tableData insertRow:loadingItem atIndexPath:firstRowIp];
+    }
+  }];
+  _searchText = searchText;
+  [self performSelectorInBackground:@selector(searchInBackground:) withObject:searchText];
+  return nil;
+}
+- (void)searchInBackground:(NSString *)searchText {
+  // simulate long running search operation
+  [NSThread sleepForTimeInterval:1];
+  MwfTableData * results = nil;
+  if (_withSection) results = [MwfTableData createTableDataWithSections];
+  else results = [MwfTableData createTableData];
+  
+  NSUInteger numberOfSections = self.tableData.numberOfSections;
+  for (int i = 0; i < numberOfSections; i++) {
+    NSUInteger numberOfRows = [self.tableData numberOfRowsInSection:i];
+    if (_withSection) [results insertSection:[self.tableData objectForSectionAtIndex:i] atIndex:i];
+    for (int j = 0; j < numberOfRows; j++) {
+      id item = [self.tableData objectForRowAtIndexPath:[NSIndexPath indexPathForRow:j inSection:i]];
+      if ([item isKindOfClass:[DemoData class]]) {
+        DemoData * demoItem = (DemoData *)item;
+        if ([[demoItem.value lowercaseString] hasPrefix:[searchText lowercaseString]]) {
+          [results addRow:demoItem inSection:i];
+        }
+      }
+    }
+  }
+  if (searchText == _searchText) {
+    self.searchResultsTableData = results;
+  }
+}
 @end
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 @implementation MwfDemoLoadingItem
 @synthesize loadingText = _loadingText;
 @end
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 @implementation MwfDemoLoadingItemCell
 @synthesize activityIndicatorView = _activityIndicatorView;
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier;

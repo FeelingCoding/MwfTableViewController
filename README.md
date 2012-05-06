@@ -228,7 +228,7 @@ Note: if you want to further simplify your code by not writing those methods at 
 Benefits of using this:
 * Reusable, you can build a catalog of table items and cells that you can reuse whenever you need it.
 * When using with `MwfTableViewController`'s `tableView:cellForObject:` (explained in previous section), you eliminate the need to implement the creation and configuration methods. 
-* When using with `MwfTableViewController`'s `tableView:cellForObject:` and `userInfo` is set, you can implement `tableView:configure<CellClassName>:forUserInfo:` method to configure the cell using data in `userInfo`.
+* When using with `MwfTableViewController`'s `tableView:cellForObject:` and `userInfo` is set, you can implement `tableView:config<CellClassName>:forUserInfo:` method to configure the cell using data in `userInfo`.
 
 Example:
 
@@ -279,6 +279,54 @@ Example when using with `tableView:cellForObject:` and `userInfo` is set.
    } 
    
    ```   
+      
+### Search
+
+Search is a very common function that comes together with table view. For that, `MwfTableViewController` provides some basic functionalities to easily implement search for your table view.
+
+*Enable search for your table view controller*
+
+To enable search, just set `wantSearch` to YES. Additionally, implement `createAndInitSearchResultsTableData` to customize initial data for your search results.
+
+  ```objective-c
+  - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil;
+  {
+     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+     if (self) {
+       self.wantSearch = YES;
+     }
+     return self;
+  }
+  
+  - (MwfTableData *)createAndInitSearchResultsTableData {
+    MwfTableData * td = ...; // create and perhaps initialize with some rows
+    return td;
+  }
+  ```
+
+*Handle search query*
+
+When user types on the search bar or select search option, `- (MwfTableData *)createSearchResultsTableDataForSearchText:(NSString *)searchText scope:(NSString *)scope;` will be invoked. You should implement this method to populate an instance of `MwfTableData` that contains results of the search. By default, the invocation of this method is delayed by `0.4 second`. You can change this value by setting `searchDelayInSeconds` property.
+
+If you wish you perform search in background, you should return `nil` from this method and dispatch the search to the background. Once search results are available, simply set `searchResultsTableData` to display them.
+
+*Bonus*
+
+Similar to `tableData`, `searchResultsTableData` also comes with equivalence update method `performUpdatesForSearchResults:(void(^)(MwfTableData *))updateBlock`.
+      
+*Attention*
+
+When `wantSearch` is `YES`. Responding to `UITableViewController` delegate or dataSource callbacks requires special attention. You should not call `tableData` or `searchResultsTableData` directly to avoid mistake in using the incorrect table data. Instead, a method `- (MwfTableData *) tableDataForTableView:(UITableView *)tableView;` is available for you to use to use the correct table data for specified tableView. The implementation of this method is very simple actually:
+
+  ```objective-c
+  - (MwfTableData *)tableDataForTableView:(UITableView *)tableView;
+  {
+    if (tableView == self.tableView) return _tableData;
+    return _searchResultsTableData;
+  }
+  ```
+  
+  If you remember this, it will save you tons of debugging time that could sometimes really hard to solve.
       
 ## Licensing
 

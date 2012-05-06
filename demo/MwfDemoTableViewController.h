@@ -9,8 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "MwfTableViewController.h"
 
-@interface MwfDemoTableViewController : MwfTableViewController {
+@interface MwfDemoTableViewController : MwfTableViewController <UISearchBarDelegate, UISearchDisplayDelegate> {
   BOOL _withSection;
+  NSString * _searchText;
 }
 @end
 

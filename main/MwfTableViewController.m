@@ -764,6 +764,7 @@
 #pragma mark - MwfTableViewController
 @interface MwfTableViewController ()
 - (void)initialize;
+- (void)performUpdates:(void (^)(MwfTableData *))updates withTableData:(MwfTableData *)tableData tableView:(UITableView *)tableView;
 @end
 
 #define $impTarget       _implementationTarget
@@ -774,12 +775,16 @@
 #define $configSelCache  _configSelectorCache
 
 @implementation MwfTableViewController
-@synthesize tableHeaderTopView = _tableHeaderTopView;
-@synthesize loading            = _loading;
-@synthesize loadingView        = _loadingView;
-@synthesize loadingStyle       = _loadingStyle;
-@synthesize tableData          = _tableData;
+@synthesize tableHeaderTopView     = _tableHeaderTopView;
+@synthesize loading                = _loading;
+@synthesize loadingView            = _loadingView;
+@synthesize loadingStyle           = _loadingStyle;
+@synthesize tableData              = _tableData;
+@synthesize searchResultsTableData = _searchResultsTableData;
+@synthesize wantSearch             = _wantSearch;
+@synthesize searchDelayInSeconds   = _searchDelayInSeconds;
 
+#pragma mark - Private
 - (void)initialize;
 {
   _tableData = [self createAndInitTableData];
@@ -791,7 +796,53 @@
   $configImpCache = [[NSMutableDictionary alloc] initWithCapacity:0]; 
   $createSelCache = [[NSMutableDictionary alloc] initWithCapacity:0];
   $configSelCache = [[NSMutableDictionary alloc] initWithCapacity:0];
+  
+  // search
+  _searchDelayInSeconds = 0.5;
 }
+- (MwfTableData *)tableDataForTableView:(UITableView *)tableView;
+{
+  if (tableView == self.tableView) return _tableData;
+  return _searchResultsTableData;
+}
+- (void)performUpdates:(void (^)(MwfTableData *))updates withTableData:(MwfTableData *)tableData tableView:(UITableView *)tableView;
+{
+  if (updates != NULL) {
+    MwfTableDataUpdates * u = [tableData performUpdates:updates];
+    if (u) {
+      void(^go)(void) = ^{
+        UITableViewRowAnimation rowAnimation = UITableViewRowAnimationAutomatic;
+        [tableView beginUpdates];
+        if (u.insertSections.count > 0) { 
+          [tableView insertSections:u.insertSections withRowAnimation:rowAnimation]; 
+        }
+        if (u.deleteSections.count > 0) {
+          [tableView deleteSections:u.deleteSections withRowAnimation:rowAnimation];
+        }
+        if (u.reloadSections.count > 0) {
+          [tableView reloadSections:u.reloadSections withRowAnimation:rowAnimation];
+        }
+        if (u.deleteRows.count > 0) {
+          [tableView deleteRowsAtIndexPaths:u.deleteRows withRowAnimation:rowAnimation];
+        }
+        if (u.reloadRows.count > 0) {
+          [tableView reloadRowsAtIndexPaths:u.reloadRows withRowAnimation:rowAnimation];
+        }
+        if (u.insertRows.count > 0) {
+          [tableView insertRowsAtIndexPaths:u.insertRows withRowAnimation:rowAnimation];
+        }
+        [tableView endUpdates];
+      };
+      if ([NSThread isMainThread]) {
+        go();
+      } else {
+        $inMain(go);
+      }
+    }
+  }  
+}
+
+#pragma mark - Init
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil;
 {
   self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -813,6 +864,7 @@
   [super awakeFromNib];
   [self initialize];
 }
+#pragma mark - View Lifecycle
 - (void)loadView;
 {
   [super loadView];
@@ -836,6 +888,8 @@
   
   _loadingView = [self createLoadingView];
   _loadingView.hidden = YES;
+  
+  [self setWantSearch:_wantSearch];
 }
 
 - (void)viewDidUnload;
@@ -845,6 +899,7 @@
   _tableHeaderTopView = nil;
   _emptyTableFooterBottomView = nil;
   _loadingView = nil;
+  __searchDisplayController = nil;
 }
 
 #pragma mark - Loading
@@ -984,55 +1039,26 @@
 }
 - (void)performUpdates:(void(^)(MwfTableData *))updates;
 {
-  if (updates != NULL) {
-    MwfTableDataUpdates * u = [_tableData performUpdates:updates];
-    if (u) {
-      void(^go)(void) = ^{
-        UITableViewRowAnimation rowAnimation = UITableViewRowAnimationAutomatic;
-        [self.tableView beginUpdates];
-        if (u.insertSections.count > 0) { 
-          [self.tableView insertSections:u.insertSections withRowAnimation:rowAnimation]; 
-        }
-        if (u.deleteSections.count > 0) {
-          [self.tableView deleteSections:u.deleteSections withRowAnimation:rowAnimation];
-        }
-        if (u.reloadSections.count > 0) {
-          [self.tableView reloadSections:u.reloadSections withRowAnimation:rowAnimation];
-        }
-        if (u.deleteRows.count > 0) {
-          [self.tableView deleteRowsAtIndexPaths:u.deleteRows withRowAnimation:rowAnimation];
-        }
-        if (u.reloadRows.count > 0) {
-          [self.tableView reloadRowsAtIndexPaths:u.reloadRows withRowAnimation:rowAnimation];
-        }
-        if (u.insertRows.count > 0) {
-          [self.tableView insertRowsAtIndexPaths:u.insertRows withRowAnimation:rowAnimation];
-        }
-        [self.tableView endUpdates];
-      };
-      if ([NSThread isMainThread]) {
-        go();
-      } else {
-        $inMain(go);
-      }
-    }
-  }
+  [self performUpdates:updates 
+         withTableData:self.tableData 
+             tableView:self.tableView];
 }
 
 #pragma mark - UITableViewDataSource
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView;
 {
-  return _tableData.numberOfSections;
+  return [self tableDataForTableView:tableView].numberOfSections;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section;
 {
-  return [_tableData numberOfRowsInSection:section];
+  return [[self tableDataForTableView:tableView] numberOfRowsInSection:section];
 }
 
 #pragma mark - UITableViewDelegate
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
 {
-  id rowItem = [self.tableData objectForRowAtIndexPath:indexPath];
+  MwfTableData * targetTableData = (tableView == self.tableView ? self.tableData : self.searchResultsTableData); 
+  id rowItem = [targetTableData objectForRowAtIndexPath:indexPath];
 
   UITableViewCell * cell = [self tableView:tableView cellForObject:rowItem];
   
@@ -1204,5 +1230,117 @@
     
   }
   return cell;
+}
+
+#pragma mark - Search
+- (void)setSearchResultsTableData:(MwfTableData *)searchResultsTableData;
+{
+  if (searchResultsTableData) {
+    _searchResultsTableData = searchResultsTableData;
+    if (self.searchDisplayController.isActive) {
+      __block MwfTableViewController * weakSelf = self;
+      void(^go)(void) = ^{
+        [weakSelf.searchDisplayController.searchResultsTableView reloadData];
+      };
+      if ([NSThread isMainThread]) {
+        go();
+      } else {
+        $inMain(go);
+      }
+    }
+  }
+}
+- (MwfTableData *)createAndInitSearchResultsTableData;
+{
+  return [MwfTableData createTableData];
+}
+- (void)setWantSearch:(BOOL)wantSearch;
+{
+  _wantSearch = wantSearch;
+  
+  if (![self isViewLoaded]) return;
+  
+  UISearchBar * searchBar = (UISearchBar *)([self.tableView.tableHeaderView isKindOfClass:[UISearchBar class]] ? self.tableView.tableHeaderView : nil);
+
+  if (_wantSearch) {
+
+    // add search bar and setup uisearchdisplaycontroller
+    if (!searchBar) {
+      searchBar = [[UISearchBar alloc] initWithFrame:CGRectZero];
+      searchBar.delegate = self;
+      [searchBar sizeToFit];
+    }
+
+    if (!_searchResultsTableData) {
+      self.searchResultsTableData = [self createAndInitSearchResultsTableData];
+    }
+    
+    if (!__searchDisplayController) {
+      
+      __searchDisplayController = [[UISearchDisplayController alloc] initWithSearchBar:searchBar contentsController:self];
+      __searchDisplayController.delegate = self;
+      __searchDisplayController.searchResultsDelegate = self;
+      __searchDisplayController.searchResultsDataSource = self;
+    }
+    self.tableView.tableHeaderView = searchBar;
+  } else {
+    if (searchBar) {
+      // remove search bar 
+      [searchBar removeFromSuperview];
+    }
+    if (_searchResultsTableData) {
+      _searchResultsTableData = nil;
+    }
+    if (__searchDisplayController) {
+      // nullify uisearchdisplaycontroller
+      __searchDisplayController = nil;
+    }
+    if (_searchResultsTableData) {
+      // nullify table data
+      _searchResultsTableData = nil;
+    }
+  }
+}
+- (MwfTableData *) createSearchResultsTableDataForSearchText:(NSString *)searchText scope:(NSString *)scope;
+{
+  return nil;
+}
+#pragma mark - Search Results
+- (void)invokeSearchWithSearchCriteria:(NSDictionary *)criteria;
+{
+  NSString * searchText = [criteria objectForKey:@"searchText"];
+  NSString * scope = [criteria objectForKey:@"scope"];
+  MwfTableData * searchResultsTableData = [self createSearchResultsTableDataForSearchText:searchText scope:scope];
+  self.searchResultsTableData = searchResultsTableData;
+}
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString;
+{
+  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(invokeSearchWithSearchCriteria:) object:_previousSearchCriteria];
+
+  _previousSearchCriteria = [[NSMutableDictionary alloc] initWithCapacity:0];
+  NSString * searchText = searchString;
+  NSString * scope = [controller.searchBar.scopeButtonTitles objectAtIndex:controller.searchBar.selectedScopeButtonIndex];
+  if (searchText) [_previousSearchCriteria setObject:searchText forKey:@"searchText"];
+  if (scope)      [_previousSearchCriteria setObject:scope forKey:@"scope"];
+  [self performSelector:@selector(invokeSearchWithSearchCriteria:) withObject:_previousSearchCriteria afterDelay:_searchDelayInSeconds];
+  return NO;
+}
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption;
+{
+  [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(invokeSearchWithSearchCriteria:) object:_previousSearchCriteria];
+  
+  _previousSearchCriteria = [[NSMutableDictionary alloc] initWithCapacity:0];
+  NSString * searchText = controller.searchBar.text;
+  NSString * scope = [controller.searchBar.scopeButtonTitles objectAtIndex:searchOption];
+  if (searchText) [_previousSearchCriteria setObject:searchText forKey:@"searchText"];
+  if (scope)      [_previousSearchCriteria setObject:scope forKey:@"scope"];
+  [self performSelector:@selector(invokeSearchWithSearchCriteria:) withObject:_previousSearchCriteria afterDelay:_searchDelayInSeconds];
+  return NO;
+}
+- (void)performUpdatesForSearchResults:(void(^)(MwfTableData *))updates;
+{
+  [self performUpdates:updates 
+         withTableData:self.searchResultsTableData 
+             tableView:self.searchDisplayController.searchResultsTableView];
 }
 @end

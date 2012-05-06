@@ -66,9 +66,10 @@ typedef enum {
   MwfTableViewLoadingStyleFooter
 } MwfTableViewLoadingStyle;
 
-@interface MwfTableViewController : UITableViewController {
+@interface MwfTableViewController : UITableViewController <UISearchDisplayDelegate,UISearchBarDelegate> {
   UIView * _emptyTableFooterBottomView;
 
+  // for table cells
   id                    _implementationTarget;
   Class                 _implementationTargetClass;
   NSMutableDictionary * _createImplementationCache;
@@ -76,12 +77,19 @@ typedef enum {
   NSMutableDictionary * _configImplementationCache;
   NSMutableDictionary * _configSelectorCache;
   
+  // for search
+  // http://stackoverflow.com/questions/7679501/uiviewcontroller-does-not-retain-its-programmatically-created-uisearchdisplaycon
+  UISearchDisplayController * __searchDisplayController;
+  NSMutableDictionary       * _previousSearchCriteria;
 }
 @property (nonatomic) MwfTableViewLoadingStyle       loadingStyle;
 @property (nonatomic) BOOL                           loading;
 @property (nonatomic,readonly) UIView              * tableHeaderTopView;
 @property (nonatomic,readonly) UIView              * loadingView;
 @property (nonatomic,retain)   MwfTableData        * tableData;
+@property (nonatomic,retain)   MwfTableData        * searchResultsTableData;
+@property (nonatomic)          BOOL                  wantSearch;
+@property (nonatomic)          CGFloat               searchDelayInSeconds;
 
 - (void)setLoading:(BOOL)loading animated:(BOOL)animated;
 @end
@@ -96,11 +104,19 @@ typedef enum {
 @interface MwfTableViewController (TableData)
 - (MwfTableData *) createAndInitTableData;
 - (void)performUpdates:(void(^)(MwfTableData *))updates;
+- (MwfTableData *) tableDataForTableView:(UITableView *)tableView;
 @end
 
 @interface MwfTableViewController (TableViewCell)
 - (UITableViewCell *) tableView:(UITableView *)tableView 
                   cellForObject:(id)rowItem; 
+@end
+
+@interface MwfTableViewController (Search)
+- (void)setWantSearch:(BOOL)wantSearch;
+- (MwfTableData *)createAndInitSearchResultsTableData;
+- (void)performUpdatesForSearchResults:(void(^)(MwfTableData *))updates;
+- (MwfTableData *)createSearchResultsTableDataForSearchText:(NSString *)searchText scope:(NSString *)scope;
 @end
 
 @interface MwfDefaultTableLoadingView : UIView
