@@ -9,6 +9,17 @@
 
 @end
 
+@interface Spec2 : NSObject
+@property (nonatomic,retain) NSString * val1;
+@end
+
+@interface Spec2 ()
+@property (nonatomic,retain) NSString * val2;
+@end
+
+@interface Spec3 : Spec
+@end
+
 @interface SpecTableItem : MwfTableItem
 @end
 
@@ -20,6 +31,6 @@
 @property (nonatomic) NSUInteger createCellForNSObject;
 @property (nonatomic) NSUInteger configCellForNSObject;
 @property (nonatomic) NSUInteger configCellForSpec;
-- (UITableViewCell *)tableView:(UITableView *)tableView createCellForNSObject:(NSObject *)obj;
-- (void)tableView:(UITableView*)tableView configCell:(UITableViewCell *)cell forNSObject:(NSObject *)item;
+@property (nonatomic) NSUInteger createCellForSpec;
+@property (nonatomic) NSUInteger createCellForSpec2;
 @end

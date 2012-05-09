@@ -1060,7 +1060,7 @@
   MwfTableData * targetTableData = (tableView == self.tableView ? self.tableData : self.searchResultsTableData); 
   id rowItem = [targetTableData objectForRowAtIndexPath:indexPath];
 
-  UITableViewCell * cell = [self tableView:tableView cellForObject:rowItem];
+  UITableViewCell * cell = [self tableView:tableView cellForObject:rowItem atIndexPath:indexPath];
   
   // to prevent app crashing when returning nil
   if (!cell) {
@@ -1073,7 +1073,8 @@
 
 #pragma mark - TableViewCell
 - (UITableViewCell *) tableView:(UITableView *)tableView 
-                  cellForObject:(id)rowItem; 
+                  cellForObject:(id)rowItem
+                    atIndexPath:(NSIndexPath *)ip; 
 {
   UITableViewCell * cell = nil;
   Class cellClass = nil;
@@ -1158,9 +1159,22 @@
         if (cached) createIMP = *((IMP *)[cached bytes]);
         
         if (!createIMP) {
-          const char * selectorName = [[@"tableView:createCellFor" stringByAppendingFormat:@"%@:", NSStringFromClass(targetClass)] UTF8String];
-          createSEL = sel_getUid(selectorName);
-          if (class_respondsToSelector($impTargetClass, createSEL)) {
+          BOOL keepChecking = YES;
+          BOOL methodImplemented = NO;
+          Class checkingClass = targetClass;
+          while (keepChecking) {
+            const char * selectorName = [[NSString stringWithFormat:@"tableView:cellFor%@AtIndexPath:", NSStringFromClass(checkingClass)] UTF8String];
+            createSEL = sel_getUid(selectorName);
+            if (!class_respondsToSelector($impTargetClass, createSEL)) {
+              if (checkingClass == [NSObject class]) keepChecking = NO;
+              else checkingClass = class_getSuperclass(checkingClass);
+              if (checkingClass == nil) keepChecking = NO;
+            } else {
+              methodImplemented = YES;
+              keepChecking = NO;
+            }
+          }
+          if (methodImplemented) {
             createIMP = class_getMethodImplementation($impTargetClass, createSEL);
             if (createIMP) {
               [$createImpCache setObject:[NSData dataWithBytes:&createIMP length:sizeof(IMP)] 
@@ -1177,7 +1191,7 @@
         
         // call the creation method
         if (createIMP) {
-          cell = (UITableViewCell *) (*createIMP)($impTarget, createSEL, self.tableView, target);
+          cell = (UITableViewCell *) (*createIMP)($impTarget, createSEL, self.tableView, ip);
         }
       }
     }    
@@ -1196,17 +1210,30 @@
         if (cached) configIMP = *((IMP *)[cached bytes]);
         
         if (!configIMP) {
-          
-          const char * selectorName = nil; 
-          
-          if (!usingMwfTableItem) {
-            selectorName = [[@"tableView:configCell:for" stringByAppendingFormat:@"%@:",NSStringFromClass(targetClass)] UTF8String];
-          } else {
-            selectorName = [[@"tableView:config" stringByAppendingFormat:@"%@:forUserInfo:",NSStringFromClass(targetClass)] UTF8String];
+
+          BOOL keepChecking = YES;
+          BOOL methodImplemented = NO;
+          Class checkingClass = targetClass;
+          while (keepChecking) {
+            const char * selectorName = nil; 
+            if (!usingMwfTableItem) {
+              selectorName = [[@"tableView:configCell:for" stringByAppendingFormat:@"%@:",NSStringFromClass(checkingClass)] UTF8String];
+            } else {
+              selectorName = [[@"tableView:config" stringByAppendingFormat:@"%@:forUserInfo:",NSStringFromClass(checkingClass)] UTF8String];
+            }
+            configSEL = sel_getUid(selectorName);
+            
+            if (!class_respondsToSelector($impTargetClass, configSEL)) {
+              if (checkingClass == [NSObject class]) keepChecking = NO;
+              else checkingClass = class_getSuperclass(checkingClass);
+              if (checkingClass == nil) keepChecking = NO;
+            } else {
+              methodImplemented = YES;
+              keepChecking = NO;
+            }
           }
-          configSEL = sel_getUid(selectorName);
           
-          if (class_respondsToSelector($impTargetClass, configSEL))
+          if (methodImplemented)
             configIMP = class_getMethodImplementation($impTargetClass, configSEL);
           
           if (configIMP) {

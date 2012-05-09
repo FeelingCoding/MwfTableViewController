@@ -109,7 +109,8 @@ typedef enum {
 
 @interface MwfTableViewController (TableViewCell)
 - (UITableViewCell *) tableView:(UITableView *)tableView 
-                  cellForObject:(id)rowItem; 
+                  cellForObject:(id)rowItem
+                    atIndexPath:(NSIndexPath *)ip; 
 @end
 
 @interface MwfTableViewController (Search)

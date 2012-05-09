@@ -78,6 +78,13 @@ it(@"tests tableView:cellForRowAtIndexPath:", ^{
   SpecTableItem * specItem2 = [[SpecTableItem alloc] init];
   specItem2.userInfo = [[Spec alloc] init];
   [controller.tableData addRow:specItem2];
+  
+  Spec * spec1 = [[Spec alloc] init];
+  Spec2 * spec2 = [[Spec2 alloc] init];
+  Spec3 * spec3 = [[Spec3 alloc] init];
+  [controller.tableData addRow:spec1];
+  [controller.tableData addRow:spec2];
+  [controller.tableData addRow:spec3];
 
   expect([[controller tableView:tableView cellForRowAtIndexPath:$ip(0,0)] class]).toEqual([MwfTableItemCell class]);
   
@@ -93,9 +100,15 @@ it(@"tests tableView:cellForRowAtIndexPath:", ^{
   expect(((MwfTableItemCell *)specCell2).item).Not.toBeNil();
   expect(((MwfTableItemCell *)specCell2).item).toEqual(specItem2);
   
+  expect([controller tableView:tableView cellForRowAtIndexPath:$ip(0,4)].reuseIdentifier).toEqual(@"SpecCell");
+  expect([controller tableView:tableView cellForRowAtIndexPath:$ip(0,5)].reuseIdentifier).toEqual(@"Spec2Cell");
+  expect([controller tableView:tableView cellForRowAtIndexPath:$ip(0,6)].reuseIdentifier).toEqual(@"SpecCell");
+  
   expect(controller.createCellForNSObject).toEqual(1);
-  expect(controller.configCellForNSObject).toEqual(1);
+  expect(controller.configCellForNSObject).toEqual(4);
   expect(controller.configCellForSpec).toEqual(1);
+  expect(controller.createCellForSpec).toEqual(2);
+  expect(controller.createCellForSpec2).toEqual(1);
   
 });
 
