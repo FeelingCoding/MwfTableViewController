@@ -230,8 +230,6 @@ In your codes, you implement the creation and configuration method for Shape, bu
    ```
 Whenever `MwfTableViewController` encounter row with type Box, it will call the methods for Shape instead (because Shape is superclass of Box).
 
-If those methods are not implemented, they will be skipped.
-
 Note: if you want to further simplify your code by not writing those methods at all... Read on!
 
 ### Table Item
