@@ -185,7 +185,7 @@ If you have implemented table view with mix of multiple table view cell types, y
 
 The above example shows how bad it can become when the types of cell to display grow. It can become big nightmare to maintain.
 
-Hence, `MwfTableViewController` implemented a method `tableView:cellForObject:` trying to improve the big-fat-messy `tableView:cellForRowAtIndexPath:` method you may have.
+Hence, `MwfTableViewController` implemented a method `tableView:cellForObject:atIndexPath:` trying to improve the big-fat-messy `tableView:cellForRowAtIndexPath:` method you may have.
 By default, `MwfTableViewController` implements `tableView:cellForRowAtIndexPath:` by calling `MwfTableData` and the method.
 
    ```objective-c
@@ -205,14 +205,30 @@ By default, `MwfTableViewController` implements `tableView:cellForRowAtIndexPath
    }
    ```
    
-If you don't like the default implementation (because you are not using `MwfTableData`), you can override the method in your `MwfTableViewController` subclass to suit your need, by still utilizing `tableView:cellForObject:` method.
+If you don't like the default implementation (because you are not using `MwfTableData`), you can override the method in your `MwfTableViewController` subclass to suit your need, by still utilizing `tableView:cellForObject:atIndexPath:` method.
 
-So, how does `tableView:cellForObject:` work? In short, the design embraces coding-by-convention. It calls creation and configuration methods based on the name of the row data type.
+So, how does `tableView:cellForObject:atIndexPath:` work? In short, the design embraces coding-by-convention. It calls creation and configuration methods based on the name of the row data type.
 Example: assuming you have your row data type `Tweet` and `Comment`, it will attempt to call the following methods for you:
-* `- (UITableViewCell *)tableView:(UITableView *)tableView createCellForTweet:(Tweet *)tweet` // assume it returns TweetCell instance
-* `- (UITableViewCell *)tableView:(UITableView *)tableView createCellForComment:(Comment *)tweet` // assume it returns CommentCell instance
+* `- (UITableViewCell *)tableView:(UITableView *)tableView cellForTweetAtIndexPath:(NSIndexPath *)ip` // assume it returns TweetCell instance
+* `- (UITableViewCell *)tableView:(UITableView *)tableView cellForCommenAtIndexPatht:(NSIndexPath *)ip` // assume it returns CommentCell instance
 * `- (UITableViewCell *)tableView:(UITableView *)tableView configCell:(TweetCell *)cell forTweet:(Tweet *)tweet`
 * `- (UITableViewCell *)tableView:(UITableView *)tableView configCell:(CommentCell *)cell forTweet:(Comment *)comment`
+
+If you do not implement the creation and/or configuration methods for specific row type, but you implement the methods for its superclass, they will be called.
+For example, you have a class Shape and Box, where Box is subclass of Shape.
+In your codes, you implement the creation and configuration method for Shape, but not for Box:
+   ```objective-c
+   - (UITableViewCell*)tableView:(UITableView*)tableView cellForShapeAtIndexPath:(NSIndexPath*)ip;
+   {
+      UITableViewCell * cell = ...; // dequeue and create the cell
+      return cell
+   }
+   - (void)tableView:(UITableView*)tableView configCell:(UITableViewCell*)cell forShape:(Shape*)shape;
+   {
+      // ... configure the cell
+   }
+   ```
+Whenever `MwfTableViewController` encounter row with type Box, it will call the methods for Shape instead (because Shape is superclass of Box).
 
 If those methods are not implemented, they will be skipped.
 
@@ -227,8 +243,8 @@ Note: if you want to further simplify your code by not writing those methods at 
 
 Benefits of using this:
 * Reusable, you can build a catalog of table items and cells that you can reuse whenever you need it.
-* When using with `MwfTableViewController`'s `tableView:cellForObject:` (explained in previous section), you eliminate the need to implement the creation and configuration methods. 
-* When using with `MwfTableViewController`'s `tableView:cellForObject:` and `userInfo` is set, you can implement `tableView:config<CellClassName>:forUserInfo:` method to configure the cell using data in `userInfo`.
+* When using with `MwfTableViewController`'s `tableView:cellForObject:atIndexPath:` (explained in previous section), you eliminate the need to implement the creation and configuration methods. 
+* When using with `MwfTableViewController`'s `tableView:cellForObject:atIndexPath:` and `userInfo` is set, you can implement `tableView:config<CellClassName>:forUserInfo:` method to configure the cell using data in `userInfo`.
 
 Example:
 
@@ -268,7 +284,7 @@ Example:
    @end
    ```
    
-Example when using with `tableView:cellForObject:` and `userInfo` is set.
+Example when using with `tableView:cellForObject:atIndexPath:` and `userInfo` is set.
 
    ```objective-c
    // from demo project
