@@ -126,6 +126,16 @@ typedef enum {
 + (MwfDefaultTableLoadingView *)create;
 @end
 
+#define mwf_cellFor(_klass) \
+  (UITableViewCell*)tableView:(UITableView*)tableView cellFor##_klass##AtIndexPath:(NSIndexPath*)indexPath
+#define mwf_configCell(_klass,_cellClass) \
+  (void)tableView:(UITableView*)tableView configCell:(_cellClass *)cell for##_klass:(_klass *)item
+#define mwf_configCellWithUserInfo(_klass,_cellClass,_userInfoClass) \
+  (void)tableView:(UITableView*)tableView configCell:(_cellClass *)cell for##_klass##UserInfo:(_userInfoClass *)userInfo
+
 #ifdef CK_SHORTHAND
-#define $indexSet(_idx_) mwf_indexSet(_idx_)
+#define $indexSet(_idx_)                                          mwf_indexSet(_idx_)
+#define $cellFor(_klass)                                          mwf_cellFor(_klass)
+#define $configCell(_klass,_cellClass)                            mwf_configCell(_klass, _cellClass)
+#define $configCellWithUserInfo(_klass,_cellClass,_userInfoClass) mwf_configCellWithUserInfo(_klass, _cellClass, _userInfoClass)
 #endif

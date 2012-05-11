@@ -25,31 +25,29 @@
 @synthesize createCellForSpec2 = _createCellForSpec2;
 
 #pragma mark - Table View Cell
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForNSObjectAtIndexPath:(NSIndexPath *)ip
+-$cellFor(NSObject)
 {
-  NSLog(@"!");
   _createCellForNSObject++;
   return [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NSObjectCell"];
 }
 
-- (void)tableView:(UITableView *)tableView configCell:(UITableViewCell *)cell forNSObject:(NSObject *)item;
+-$configCell(NSObject,UITableViewCell)
 {
   _configCellForNSObject++;
-  NSLog(@"!");
 }
 
-- (void)tableView:(UITableView *)tableView configSpecTableItemCell:(SpecTableItemCell *)cell forUserInfo:(Spec *)item;
+-$configCellWithUserInfo(SpecTableItem,SpecTableItemCell,Spec)
 {
   _configCellForSpec++;
-  NSLog(@"!");
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForSpecAtIndexPath:(NSIndexPath *)ip;
+-$cellFor(Spec)
 {
   _createCellForSpec++;
   return [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"SpecCell"];
 }
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForSpec2AtIndexPath:(NSIndexPath *)ip;
+
+-$cellFor(Spec2)
 {
   _createCellForSpec2++;
   return [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Spec2Cell"];

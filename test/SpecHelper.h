@@ -2,6 +2,7 @@
 #define EXP_SHORTHAND
 #import "Expecta.h"
 #import "OCMock.h"
+#define CK_SHORTHAND
 #import "MwfTableViewController.h"
 #import "MwfTableItem.h"
 

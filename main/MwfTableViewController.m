@@ -1141,7 +1141,6 @@
           userInfo = tmpUserInfo;
 
           target = userInfo;
-          targetClass = cellClass;
         }
       }
     }
@@ -1219,7 +1218,7 @@
             if (!usingMwfTableItem) {
               selectorName = [[@"tableView:configCell:for" stringByAppendingFormat:@"%@:",NSStringFromClass(checkingClass)] UTF8String];
             } else {
-              selectorName = [[@"tableView:config" stringByAppendingFormat:@"%@:forUserInfo:",NSStringFromClass(checkingClass)] UTF8String];
+              selectorName = [[@"tableView:configCell:for" stringByAppendingFormat:@"%@UserInfo:",NSStringFromClass(checkingClass)] UTF8String];
             }
             configSEL = sel_getUid(selectorName);
             

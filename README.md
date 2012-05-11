@@ -242,7 +242,7 @@ Note: if you want to further simplify your code by not writing those methods at 
 Benefits of using this:
 * Reusable, you can build a catalog of table items and cells that you can reuse whenever you need it.
 * When using with `MwfTableViewController`'s `tableView:cellForObject:atIndexPath:` (explained in previous section), you eliminate the need to implement the creation and configuration methods. 
-* When using with `MwfTableViewController`'s `tableView:cellForObject:atIndexPath:` and `userInfo` is set, you can implement `tableView:config<CellClassName>:forUserInfo:` method to configure the cell using data in `userInfo`.
+* When using with `MwfTableViewController`'s `tableView:cellForObject:atIndexPath:` and `userInfo` is set, you can implement `tableView:configCell:for<TableItemClassName>UserInfo:` method to configure the cell using data in `userInfo`.
 
 Example:
 
@@ -287,12 +287,50 @@ Example when using with `tableView:cellForObject:atIndexPath:` and `userInfo` is
    ```objective-c
    // from demo project
    // The following method will be automatically invoked if userInfo is set.
-   - (void)tableView:(UITableView *)tableView configMwfDemoLoadingItemCell:(MwfDemoLoadingItemCell *)cell forUserInfo:(NSString *)userInfo; // I know the userInfo is always NSString
+   - (void)tableView:(UITableView *)tableView configCell:(MwfDemoLoadingItemCell *)cell forMwfDemoLoadingItemUserInfo:(NSString *)userInfo; // I know the userInfo is always NSString
    {
      cell.detailTextLabel.text = userInfo;
    } 
    
    ```   
+   
+### Helper Macro (to write more concise codes)
+
+3 macros definitions are available to help writing the above callback methods easier (less keystroke and less typing error).
+You can either choose ones that is prefixed with `mwf_` or more concise `$` sign. 
+Simply define `CK_SHORTHAND` if you prefer to use the `$` sign.
+
+   ```objective-c
+   #define CK_SHORTHAND 
+   #import "MwfTableViewController.h"
+   ```
+
+Examples:
+
+   ```objective-c
+   
+   // -(UITableViewCell*)tableView:(UITableView*)tableView cellForTweetAtIndexPath:(NSIndexPath*)indexPath
+   // can be written using macro as following
+   -$cellFor(Tweet)
+   {
+      // ... implementation
+      return cell;
+   }
+   
+   // -(void)tableView:(UITableView*)tableView configCell:(TweetCell *)cell forTweet:(Tweet *)item
+   // can be written using macro as following
+   -$configCell(Tweet,TweetCell)
+   {
+      // ... implementation
+   }
+   
+   // -(void)tableView:(UITableView*)tableView configCell:(AwesomeItemCell*)cell forAwesomeItemUserInfo:(NSString *)userInfo
+   // can be written using macro as following
+   -$configCellWithUserInfo(AwesomeItem,AwesomeItemCell,NSString)
+   {
+      // ... implementation
+   }
+   ```
       
 ### Search
 
