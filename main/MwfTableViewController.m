@@ -1032,16 +1032,32 @@
 - (void)setTableData:(MwfTableData *)tableData;
 {
   if (tableData) {
-    _tableData = tableData;
+    
     __block MwfTableViewController * weakSelf = self;
-    void(^go)(void) = ^{
-      [weakSelf.tableView reloadData];
-    };
-    if ([NSThread isMainThread]) {
-      go();
+    if (_isUpdating) {
+      double delayInSeconds = 0.1;
+      dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+      dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+        [weakSelf setTableData:tableData];
+      });
     } else {
-      $inMain(go);
+      [self setTableDataInternal:tableData];
     }
+  }
+}
+- (void)setTableDataInternal:(MwfTableData *)tableData;
+{
+  _isUpdating = YES;
+  _tableData = tableData;
+  __block MwfTableViewController * weakSelf = self;
+  void(^go)(void) = ^{
+    [weakSelf.tableView reloadData];
+    _isUpdating = NO;
+  };
+  if ([NSThread isMainThread]) {
+    go();
+  } else {
+    $inMain(go);
   }
 }
 - (void)performUpdates:(void(^)(MwfTableData *))updates;
