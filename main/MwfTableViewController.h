@@ -81,6 +81,8 @@ typedef enum {
   // http://stackoverflow.com/questions/7679501/uiviewcontroller-does-not-retain-its-programmatically-created-uisearchdisplaycon
   UISearchDisplayController * __searchDisplayController;
   NSMutableDictionary       * _previousSearchCriteria;
+  
+  BOOL _isUpdating;
 }
 @property (nonatomic) MwfTableViewLoadingStyle       loadingStyle;
 @property (nonatomic) BOOL                           loading;

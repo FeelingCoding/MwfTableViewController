@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#define CK_SHORTHAND
 #import "MwfTableViewController.h"
 
 @interface MwfDemoTableViewController : MwfTableViewController <UISearchBarDelegate, UISearchDisplayDelegate> {

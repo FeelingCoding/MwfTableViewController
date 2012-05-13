@@ -807,38 +807,45 @@
 }
 - (void)performUpdates:(void (^)(MwfTableData *))updates withTableData:(MwfTableData *)tableData tableView:(UITableView *)tableView;
 {
-  if (updates != NULL) {
-    MwfTableDataUpdates * u = [tableData performUpdates:updates];
-    if (u) {
-      void(^go)(void) = ^{
-        UITableViewRowAnimation rowAnimation = UITableViewRowAnimationAutomatic;
-        [tableView beginUpdates];
-        if (u.insertSections.count > 0) { 
-          [tableView insertSections:u.insertSections withRowAnimation:rowAnimation]; 
+  if (!_isUpdating && updates != NULL) {
+    _isUpdating = YES;
+    void(^updateIt)(void) = ^{
+      MwfTableDataUpdates * u = [tableData performUpdates:updates];
+      if (u) {
+        void(^go)(void) = ^{
+          UITableViewRowAnimation rowAnimation = UITableViewRowAnimationAutomatic;
+          [tableView beginUpdates];
+          if (u.insertSections.count > 0) { 
+            [tableView insertSections:u.insertSections withRowAnimation:rowAnimation]; 
+          }
+          if (u.deleteSections.count > 0) {
+            [tableView deleteSections:u.deleteSections withRowAnimation:rowAnimation];
+          }
+          if (u.reloadSections.count > 0) {
+            [tableView reloadSections:u.reloadSections withRowAnimation:rowAnimation];
+          }
+          if (u.deleteRows.count > 0) {
+            [tableView deleteRowsAtIndexPaths:u.deleteRows withRowAnimation:rowAnimation];
+          }
+          if (u.reloadRows.count > 0) {
+            [tableView reloadRowsAtIndexPaths:u.reloadRows withRowAnimation:rowAnimation];
+          }
+          if (u.insertRows.count > 0) {
+            [tableView insertRowsAtIndexPaths:u.insertRows withRowAnimation:rowAnimation];
+          }
+          [tableView endUpdates];
+          _isUpdating = NO;
+        };
+        if ([NSThread isMainThread]) {
+          go();
+        } else {
+          $inMain(go);
         }
-        if (u.deleteSections.count > 0) {
-          [tableView deleteSections:u.deleteSections withRowAnimation:rowAnimation];
-        }
-        if (u.reloadSections.count > 0) {
-          [tableView reloadSections:u.reloadSections withRowAnimation:rowAnimation];
-        }
-        if (u.deleteRows.count > 0) {
-          [tableView deleteRowsAtIndexPaths:u.deleteRows withRowAnimation:rowAnimation];
-        }
-        if (u.reloadRows.count > 0) {
-          [tableView reloadRowsAtIndexPaths:u.reloadRows withRowAnimation:rowAnimation];
-        }
-        if (u.insertRows.count > 0) {
-          [tableView insertRowsAtIndexPaths:u.insertRows withRowAnimation:rowAnimation];
-        }
-        [tableView endUpdates];
-      };
-      if ([NSThread isMainThread]) {
-        go();
       } else {
-        $inMain(go);
+        _isUpdating = NO;
       }
-    }
+    };
+    dispatch_async(dispatch_get_current_queue(), updateIt);
   }  
 }
 

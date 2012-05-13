@@ -176,21 +176,20 @@
 }
 
 #pragma mark - Cells
-- (UITableViewCell *)tableView:(UITableView *)tv createCellForDemoData:(DemoData *)demoData;
+-$cellFor(DemoData);
 {
-  UITableViewCell * cell = [tv dequeueReusableCellWithIdentifier:@"DemoDataCell"];
+  UITableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:@"DemoDataCell"];
   if (cell == nil) {
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault 
                                   reuseIdentifier:@"DemoDataCell"];
   }
   return cell;
 }
-- (void)tableView:(UITableView*)tv configCell:(UITableViewCell *)cell forDemoData:(DemoData *)demoData;
+-$configCell(DemoData,UITableViewCell);
 {
-  cell.textLabel.text = demoData.value;
+  cell.textLabel.text = item.value;
 }
-
-- (void)tableView:(UITableView *)tableView configMwfDemoLoadingItemCell:(MwfDemoLoadingItemCell *)cell forUserInfo:(NSString *)userInfo;
+-$configCellWithUserInfo(MwfDemoLoadingItem,MwfDemoLoadingItemCell,NSString);
 {
   cell.detailTextLabel.text = userInfo;
 }
