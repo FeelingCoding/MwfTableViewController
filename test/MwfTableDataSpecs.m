@@ -64,6 +64,8 @@ describe(@"no section", ^{
     ip = [data indexPathForRow:obj];
     expect(ip).toEqual($ip(0,3));
     
+    expect([data isEmpty]).toEqual(NO);
+    
     // array index out of bound
     e = nil;
     @try {
@@ -241,6 +243,8 @@ describe(@"with sections", ^{
     
     ip = [data indexPathForRow:obj];
     expect(ip).toEqual($ip(0,2));
+    
+    expect([data isEmpty]).toEqual(NO);
     
     // array index out of bound
     e = nil;

@@ -356,7 +356,7 @@
 }
 - (BOOL)isEmpty;
 {
-  for (NSArray * rows in _sectionArray) {
+  for (NSArray * rows in _dataArray) {
     if ([rows count] > 0) return NO;
   }
   return YES;
