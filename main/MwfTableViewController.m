@@ -181,6 +181,11 @@
 {
   return NSNotFound;
 }
+- (BOOL) isEmpty;
+{
+  return [self numberOfRows] == 0;
+}
+
 // Inserting data
 - (NSUInteger)addSection:(id)sectionObject;
 {
@@ -348,6 +353,13 @@
 - (NSUInteger) indexForSection:(id)sectionObject;
 {
   return [_sectionArray indexOfObject:sectionObject];
+}
+- (BOOL)isEmpty;
+{
+  for (NSArray * rows in _sectionArray) {
+    if ([rows count] > 0) return NO;
+  }
+  return YES;
 }
 
 // Inserting data

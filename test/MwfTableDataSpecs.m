@@ -20,6 +20,7 @@ describe(@"no section", ^{
     
     expect(data).Not.toBeNil();
     expect(data.numberOfRows).toEqual(0);
+    expect([data isEmpty]).toEqual(YES);
     
   });
   
@@ -178,6 +179,7 @@ describe(@"with sections", ^{
   
     expect(data).Not.toBeNil();
     expect(data.numberOfSections).toEqual(0);
+    expect([data isEmpty]).toEqual(YES);
     
   });
   

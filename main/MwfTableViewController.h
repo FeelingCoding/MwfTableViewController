@@ -38,6 +38,7 @@
 - (id) objectForRowAtIndexPath:(mwf_ip)ip;
 - (mwf_ip) indexPathForRow:(id)object;
 - (NSUInteger) indexForSection:(id)sectionObject;
+- (BOOL) isEmpty;
 
 // Inserting data
 - (NSUInteger)addSection:(id)sectionObject;
