@@ -2,6 +2,8 @@
 
 Extension to UITableViewController in attempt to provide additional features that are reusable in most scenarios.
 
+![](http://farm9.staticflickr.com/8456/7977820686_55c82d325b_t.jpg)
+
 ## Features
 
 ### Show Loading
