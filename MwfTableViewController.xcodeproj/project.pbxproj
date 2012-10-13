@@ -28,6 +28,7 @@
 		3D3B10E0154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B10DF154936B20066A74B /* MwfTableDataBulkUpdatesSpecs.m */; };
 		3DAA825A154DA04700D99ED4 /* MwfTableItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA8259154DA04700D99ED4 /* MwfTableItem.m */; };
 		42C9AF5ACD9B4040A449C7A0 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3D6CFD5A1849A18AFD0235 /* libPods.a */; };
+		DCC44E861629A43E003F1066 /* UITableViewController+Cells.m in Sources */ = {isa = PBXBuildFile; fileRef = DCC44E851629A43E003F1066 /* UITableViewController+Cells.m */; };
 		E4201A0E338A470DBCECC91F /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3D6CFD5A1849A18AFD0235 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -72,6 +73,8 @@
 		3DAA8258154DA04700D99ED4 /* MwfTableItem.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = MwfTableItem.h; sourceTree = "<group>"; };
 		3DAA8259154DA04700D99ED4 /* MwfTableItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MwfTableItem.m; sourceTree = "<group>"; };
 		9A3D6CFD5A1849A18AFD0235 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		DCC44E841629A43E003F1066 /* UITableViewController+Cells.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UITableViewController+Cells.h"; sourceTree = "<group>"; };
+		DCC44E851629A43E003F1066 /* UITableViewController+Cells.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UITableViewController+Cells.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +146,8 @@
 				3D3B103715450C0E0066A74B /* MwfAppDelegate.m */,
 				3D3B107015452AB50066A74B /* MwfDemoTableViewController.h */,
 				3D3B107115452AB50066A74B /* MwfDemoTableViewController.m */,
+				DCC44E841629A43E003F1066 /* UITableViewController+Cells.h */,
+				DCC44E851629A43E003F1066 /* UITableViewController+Cells.m */,
 			);
 			path = demo;
 			sourceTree = "<group>";
@@ -330,6 +335,7 @@
 				3D3B1065154510650066A74B /* MwfTableViewController.m in Sources */,
 				3D3B107315452AB60066A74B /* MwfDemoTableViewController.m in Sources */,
 				3DAA825A154DA04700D99ED4 /* MwfTableItem.m in Sources */,
+				DCC44E861629A43E003F1066 /* UITableViewController+Cells.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,8 +436,10 @@
 				GCC_PREFIX_HEADER = "demo/MwfTableViewController-Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "demo/MwfTableViewController-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -444,8 +452,10 @@
 				GCC_PREFIX_HEADER = "demo/MwfTableViewController-Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "demo/MwfTableViewController-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

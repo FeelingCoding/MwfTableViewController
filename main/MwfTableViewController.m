@@ -881,7 +881,8 @@
           _isUpdating = NO;
         }
       };
-      dispatch_async(dispatch_get_current_queue(), updateIt);
+      // dispatch_async(dispatch_get_current_queue(), updateIt);
+      dispatch_async(dispatch_get_main_queue(), updateIt);
     }
   } 
 }
@@ -1237,20 +1238,21 @@
             createIMP = class_getMethodImplementation($impTargetClass, createSEL);
             if (createIMP) {
               [$createImpCache setObject:[NSData dataWithBytes:&createIMP length:sizeof(IMP)] 
-                                  forKey:targetClass];
+                                  forKey:(id<NSCopying>)targetClass];
             }
           } else {
-            [$createImpCache setObject:[NSNull null] forKey:targetClass];
+            [$createImpCache setObject:[NSNull null] forKey:(id<NSCopying>)targetClass];
           }
           [$createSelCache setObject:[NSData dataWithBytes:createSEL length:sizeof(SEL)] 
-                              forKey:targetClass];
+                              forKey:(id<NSCopying>)targetClass];
         } else {
           createSEL = *((SEL *)[(NSData *)[$createSelCache objectForKey:targetClass] bytes]);
         }
         
         // call the creation method
         if (createIMP) {
-          cell = (UITableViewCell *) (*createIMP)($impTarget, createSEL, self.tableView, ip);
+          UITableViewCell* (*imp)(id,SEL,UITableView *, NSIndexPath *) = (UITableViewCell* (*)(id,SEL,UITableView *, NSIndexPath *)) *createIMP;
+          cell = imp($impTarget, createSEL, self.tableView, ip);
         }
       }
     }    
@@ -1297,19 +1299,20 @@
           
           if (configIMP) {
             [$configImpCache setObject:[NSData dataWithBytes:&configIMP length:sizeof(IMP)] 
-                                forKey:targetClass];
+                                forKey:(id<NSCopying>)targetClass];
           } else {
-            [$configImpCache setObject:[NSNull null] forKey:targetClass];
+            [$configImpCache setObject:[NSNull null] forKey:(id<NSCopying>)targetClass];
           }
           [$configSelCache setObject:[NSData dataWithBytes:&configSEL length:sizeof(SEL)] 
-                              forKey:targetClass];
+                              forKey:(id<NSCopying>)targetClass];
         } else {
           configSEL = *((SEL *)[(NSData *)[$configSelCache objectForKey:targetClass] bytes]);
         }
         
         // call the configure method
         if (configIMP) {
-          (*configIMP)($impTarget, configSEL, self.tableView, cell, target);
+          void (*imp)(id,SEL,UITableView *, UITableViewCell *, id) = (void (*)(id,SEL,UITableView *, UITableViewCell *, id)) *configIMP;
+          imp($impTarget, configSEL, self.tableView, cell, target);
         }
       }
     }      

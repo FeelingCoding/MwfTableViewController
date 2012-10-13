@@ -1,6 +1,9 @@
-PODS_ROOT = $(SRCROOT)/Pods
-HEADER_SEARCH_PATHS = "$(PODS_ROOT)/Headers" "$(PODS_ROOT)/Headers/Expecta" "$(PODS_ROOT)/Headers/OCMock" "$(PODS_ROOT)/Headers/Specta"
+PODS_ROOT = ${SRCROOT}/Pods
+PODS_HEADERS_SEARCH_PATHS = ${PODS_PUBLIC_HEADERS_SEARCH_PATHS}
 ALWAYS_SEARCH_USER_PATHS = YES
-OTHER_LDFLAGS = -ObjC -all_load -framework Foundation -ObjC -framework Foundation -framework SenTestingKit
+OTHER_LDFLAGS = -ObjC -ObjC -framework Foundation -framework SenTestingKit
 FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_FRAMEWORKS_DIR)"
 LD_RUNPATH_SEARCH_PATHS = "$(DEVELOPER_FRAMEWORKS_DIR)"
+HEADER_SEARCH_PATHS = ${PODS_HEADERS_SEARCH_PATHS}
+PODS_BUILD_HEADERS_SEARCH_PATHS = "${PODS_ROOT}/BuildHeaders" "${PODS_ROOT}/BuildHeaders/Expecta" "${PODS_ROOT}/BuildHeaders/OCMock" "${PODS_ROOT}/BuildHeaders/Specta"
+PODS_PUBLIC_HEADERS_SEARCH_PATHS = "${PODS_ROOT}/Headers" "${PODS_ROOT}/Headers/Expecta" "${PODS_ROOT}/Headers/OCMock" "${PODS_ROOT}/Headers/Specta"
